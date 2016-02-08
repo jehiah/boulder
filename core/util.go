@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -421,4 +422,13 @@ func RetryBackoff(retries int, base, max time.Duration, factor float64) time.Dur
 	// the same time, they won't operate in lockstep.
 	backoff *= (1 - retryJitter) + 2*retryJitter*mrand.Float64()
 	return time.Duration(backoff)
+}
+
+func HashNames(names []string) []byte {
+	sort.Strings(names)
+	for i := range names {
+		names[i] = strings.ToLower(names[i])
+	}
+	hash := sha256.Sum256([]byte(strings.Join(names, ",")))
+	return hash[:]
 }

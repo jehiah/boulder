@@ -105,6 +105,7 @@ type StorageGetter interface {
 	CountRegistrationsByIP(net.IP, time.Time, time.Time) (int, error)
 	CountPendingAuthorizations(regID int64) (int, error)
 	GetSCTReceipt(string, string) (SignedCertificateTimestamp, error)
+	GetNameSet([]byte) (*NameSet, error)
 }
 
 // StorageAdder are the Boulder SA's write/update methods
@@ -119,6 +120,7 @@ type StorageAdder interface {
 	AddCertificate([]byte, int64) (string, error)
 	AddSCTReceipt(SignedCertificateTimestamp) error
 	RevokeAuthorizationsByDomain(AcmeIdentifier) (int64, int64, error)
+	AddNameSet(NameSet) error
 }
 
 // StorageAuthority interface represents a simple key/value

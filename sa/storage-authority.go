@@ -872,10 +872,13 @@ func (ssa *SQLStorageAuthority) AddSCTReceipt(sct core.SignedCertificateTimestam
 
 // AddNameSet adds the hashed set of names from a certificate to the nameSets
 // table
-func (ssa *SQLStorageAuthority) AddNameSet(serial string, notBefore time.Time, namesHash []byte) error {
-	return ssa.dbMap.Insert(&core.NameSet{
-		Serial:    serial,
-		NotBefore: notBefore,
-		Hash:      namesHash,
-	})
+func (ssa *SQLStorageAuthority) AddNameSet(nameSet core.NameSet) error {
+	return ssa.dbMap.Insert(&nameSet)
+}
+
+// GetNameSet reutrns the NameSet object with hash |setHash|
+func (ssa *SQLStorageAuthority) GetNameSet(setHash []byte) (*core.NameSet, error) {
+	var nameSet core.NameSet
+	err := ssa.dbMap.SelectOne(&nameSet, "SELECT * FROM nameSets WHERE setHash = ?", setHash)
+	return &nameSet, err
 }

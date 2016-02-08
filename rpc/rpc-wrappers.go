@@ -71,6 +71,8 @@ const (
 	MethodAddSCTReceipt                     = "AddSCTReceipt"                     // SA
 	MethodSubmitToCT                        = "SubmitToCT"                        // Pub
 	MethodRevokeAuthorizationsByDomain      = "RevokeAuthorizationsByDomain"      // SA
+	MethodGetNameSet                        = "GetNameSet"                        // SA
+	MethodAddNameSet                        = "AddNameSet"                        // SA
 )
 
 // Request structs
@@ -1159,6 +1161,43 @@ func NewStorageAuthorityServer(rpc Server, impl core.StorageAuthority) error {
 		return nil, nil
 	})
 
+	rpc.Handle(MethodAddNameSet, func(req []byte) (response []byte, err error) {
+		var nameSet core.NameSet
+		err = json.Unmarshal(req, &nameSet)
+		if err != nil {
+			// AUDIT[ Error Conditions ] 9cc4d537-8534-4970-8665-4b382abe82f3
+			errorCondition(MethodAddNameSet, err, req)
+			return
+		}
+
+		err = impl.AddNameSet(nameSet)
+		if err != nil {
+			// AUDIT[ Error Conditions ] 9cc4d537-8534-4970-8665-4b382abe82f3
+			errorCondition(MethodAddNameSet, err, req)
+			return
+		}
+
+		return
+	})
+
+	rpc.Handle(MethodGetNameSet, func(req []byte) (response []byte, err error) {
+		nameSet, err := impl.GetNameSet(req)
+		if err != nil {
+			// AUDIT[ Error Conditions ] 9cc4d537-8534-4970-8665-4b382abe82f3
+			errorCondition(MethodGetNameSet, err, req)
+			return
+		}
+
+		response, err = json.Marshal(nameSet)
+		if err != nil {
+			// AUDIT[ Error Conditions ] 9cc4d537-8534-4970-8665-4b382abe82f3
+			errorCondition(MethodGetNameSet, err, req)
+			return
+		}
+
+		return
+	})
+
 	return nil
 }
 
@@ -1530,5 +1569,26 @@ func (cac StorageAuthorityClient) AddSCTReceipt(sct core.SignedCertificateTimest
 	}
 
 	_, err = cac.rpc.DispatchSync(MethodAddSCTReceipt, data)
+	return
+}
+
+// AddNameSet adds a new hashed set of names to the database.
+func (cac StorageAuthorityClient) AddNameSet(nameSet core.NameSet) (err error) {
+	data, err := json.Marshal(nameSet)
+	if err != nil {
+		return
+	}
+
+	_, err = cac.rpc.DispatchSync(MethodAddNameSet, data)
+	return
+}
+
+// GetNameSet gets a hashed set of names from the database.
+func (cac StorageAuthorityClient) GetNameSet(setHash []byte) (nameSet *core.NameSet, err error) {
+	response, err := cac.rpc.DispatchSync(MethodGetNameSet, setHash)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(response, nameSet)
 	return
 }

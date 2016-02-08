@@ -640,3 +640,9 @@ var RevocationReasons = map[RevocationCode]string{
 	9:  "privilegeWithdrawn",
 	10: "aAcompromise",
 }
+
+type NameSet struct {
+	SetHash   []byte
+	Serial    string
+	NotBefore time.Time
+}
