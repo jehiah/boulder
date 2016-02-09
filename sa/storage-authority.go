@@ -882,3 +882,17 @@ func (ssa *SQLStorageAuthority) GetNameSet(setHash []byte) (*core.NameSet, error
 	err := ssa.dbMap.SelectOne(&nameSet, "SELECT * FROM nameSets WHERE setHash = ?", setHash)
 	return &nameSet, err
 }
+
+// CountValidNameSets reutrns the number of currently valid sets with hash |setHash|
+func (ssa *SQLStorageAuthority) CountValidNameSets(setHash []byte) (int64, error) {
+	var count int64
+	err := ssa.dbMap.SelectOne(
+		&count,
+		`SELECT COUNT(serial) FROM nameSets
+     WHERE setHash = ?
+     AND expires > ?`,
+		setHash,
+		ssa.clk.Now(),
+	)
+	return count, err
+}

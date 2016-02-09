@@ -106,6 +106,7 @@ type StorageGetter interface {
 	CountPendingAuthorizations(regID int64) (int, error)
 	GetSCTReceipt(string, string) (SignedCertificateTimestamp, error)
 	GetNameSet([]byte) (*NameSet, error)
+	CountValidNameSets([]byte) (int64, error)
 }
 
 // StorageAdder are the Boulder SA's write/update methods

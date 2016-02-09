@@ -15,9 +15,9 @@ import (
 )
 
 type resultHolder struct {
-	Serial string
-	Issued time.Time
-	DER    []byte
+	Serial  string
+	Expires time.Time
+	DER     []byte
 }
 
 type backfiller struct {
@@ -73,7 +73,7 @@ func (b *backfiller) findCerts() ([]resultHolder, error) {
 	_, err := b.dbMap.Select(
 		&results,
 		// idk left outer join instead?
-		`SELECT c.serial, c.issued, c.der FROM certificates AS c
+		`SELECT c.serial, c.expires, c.der FROM certificates AS c
      WHERE c.serial NOT IN (SELECT ns.serial FROM nameSets AS ns)
      AND c.expires > ?
      ORDER BY c.issued DESC
@@ -94,7 +94,7 @@ func (b *backfiller) processResults(results []resultHolder) error {
 			// log
 			continue
 		}
-		err = b.sa.AddNameSet(core.NameSet{core.HashNames(c.DNSNames), r.Serial, r.Issued})
+		err = b.sa.AddNameSet(core.NameSet{core.HashNames(c.DNSNames), r.Serial, r.Expires})
 		if err != nil {
 			// log
 			continue

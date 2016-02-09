@@ -7,14 +7,13 @@ CREATE TABLE `nameSets` (
        -- SHA256 hash of alphabetically sorted, lowercased, comma joined
        -- DNS names contained in a certificate
        `setHash` BINARY(32) NOT NULL,
-       `serial` VARCHAR(255) NOT NULL,
-       `notBefore` DATETIME NOT NULL,
+       `serial` VARCHAR(255) UNIQUE NOT NULL,
+       `expires` DATETIME NOT NULL,
        PRIMARY KEY (`id`),
-       KEY `setHash`
+       KEY `setHash_serial` (`setHash`, `serial`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- +goose Down
 -- SQL section 'Down' is executed when this migration is rolled back
 
 DROP TABLE `nameSets`;
-

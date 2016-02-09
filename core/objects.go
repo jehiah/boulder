@@ -642,7 +642,7 @@ var RevocationReasons = map[RevocationCode]string{
 }
 
 type NameSet struct {
-	SetHash   []byte
-	Serial    string
-	NotBefore time.Time
+	SetHash []byte
+	Serial  string
+	Expires time.Time
 }

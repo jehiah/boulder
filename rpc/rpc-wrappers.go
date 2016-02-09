@@ -73,6 +73,7 @@ const (
 	MethodRevokeAuthorizationsByDomain      = "RevokeAuthorizationsByDomain"      // SA
 	MethodGetNameSet                        = "GetNameSet"                        // SA
 	MethodAddNameSet                        = "AddNameSet"                        // SA
+	MethodCountValidNameSets                = "CountValidNameSets"                // SA
 )
 
 // Request structs
@@ -182,6 +183,10 @@ type caaResponse struct {
 type revokeAuthsResponse struct {
 	FinalRevoked   int64
 	PendingRevoked int64
+}
+
+type countNameSetsResponse struct {
+	Count int64
 }
 
 func improperMessage(method string, err error, obj interface{}) {
@@ -1198,6 +1203,24 @@ func NewStorageAuthorityServer(rpc Server, impl core.StorageAuthority) error {
 		return
 	})
 
+	rpc.Handle(MethodCountValidNameSets, func(req []byte) (response []byte, err error) {
+		count, err := impl.CountValidNameSets(req)
+		if err != nil {
+			// AUDIT[ Error Conditions ] 9cc4d537-8534-4970-8665-4b382abe82f3
+			errorCondition(MethodCountValidNameSets, err, req)
+			return
+		}
+
+		response, err = json.Marshal(countNameSetsResponse{count})
+		if err != nil {
+			// AUDIT[ Error Conditions ] 9cc4d537-8534-4970-8665-4b382abe82f3
+			errorCondition(MethodCountValidNameSets, err, req)
+			return
+		}
+
+		return
+	})
+
 	return nil
 }
 
@@ -1591,4 +1614,15 @@ func (cac StorageAuthorityClient) GetNameSet(setHash []byte) (nameSet *core.Name
 	}
 	err = json.Unmarshal(response, nameSet)
 	return
+}
+
+// CountValidNameSets reutrns the number of currently valid sets with hash |setHash|
+func (cac StorageAuthorityClient) CountValidNameSets(setHash []byte) (int64, error) {
+	var count countNameSetsResponse
+	response, err := cac.rpc.DispatchSync(MethodCountValidNameSets, setHash)
+	if err != nil {
+		return 0, err
+	}
+	err = json.Unmarshal(response, &count)
+	return count.Count, err
 }
